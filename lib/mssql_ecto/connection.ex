@@ -1,4 +1,7 @@
 defmodule MssqlEcto.Connection do
+  @default_port 1433
+  @behaviour Ecto.Adapters.SQL.Connection
+
   alias Mssqlex.Query
   alias MssqlEcto.Query, as: SQL
 
@@ -8,11 +11,13 @@ defmodule MssqlEcto.Connection do
   @typedoc "The cache query which is a DBConnection Query"
   @type cached :: map
 
+  ## Module and Options
+
   @doc """
   Receives options and returns `DBConnection` supervisor child
   specification.
   """
-  @spec child_spec(options :: Keyword.t()) :: {module, Keyword.t()}
+  @impl true
   def child_spec(opts) do
     DBConnection.child_spec(Mssqlex.Protocol, opts)
   end
@@ -20,6 +25,7 @@ defmodule MssqlEcto.Connection do
   @doc """
   Prepares and executes the given query with `DBConnection`.
   """
+  @impl true
   @spec prepare_execute(
           connection :: DBConnection.t(),
           name :: String.t(),
@@ -54,18 +60,18 @@ defmodule MssqlEcto.Connection do
     end
   end
 
+  @impl true
+  def query(conn, sql, params, opts) do
+    Mssqlex.query(conn, sql, params, opts)
+  end
+
   @doc """
   Executes the given prepared query with `DBConnection`.
   """
+  @impl true
   @spec execute(
           connection :: DBConnection.t(),
-          prepared_query :: prepared,
-          params :: [term],
-          options :: Keyword.t()
-        ) :: {:ok, term} | {:error, Exception.t()}
-  @spec execute(
-          connection :: DBConnection.t(),
-          prepared_query :: cached,
+          prepared_query :: cached | prepared,
           params :: [term],
           options :: Keyword.t()
         ) :: {:ok, term} | {:error | :reset, Exception.t()}
@@ -166,6 +172,7 @@ defmodule MssqlEcto.Connection do
   Must return an empty list if the error does not come
   from any constraint.
   """
+  @impl true
   @spec to_constraints(exception :: Exception.t()) :: Keyword.t()
   def to_constraints(%Mssqlex.Error{} = error), do: error.constraint_violations
 
@@ -173,6 +180,7 @@ defmodule MssqlEcto.Connection do
   Returns a stream that prepares and executes the given query with
   `DBConnection`.
   """
+  @impl true
   @spec stream(
           connection :: DBConnection.conn(),
           prepared_query :: prepared,
@@ -184,20 +192,53 @@ defmodule MssqlEcto.Connection do
   end
 
   ## Queries
+  @impl true
+  @spec all(Ecto.Query.t()) :: binary()
   def all(query), do: SQL.all(query)
+
+  @impl true
+  @spec update_all(Ecto.Query.t(), any()) :: any()
   def update_all(query, prefix \\ nil), do: SQL.update_all(query, prefix)
-  @doc false
+
+  @impl true
+  @spec delete_all(Ecto.Query.t()) :: binary()
   def delete_all(query), do: SQL.delete_all(query)
 
+  @impl true
   def insert(prefix, table, header, rows, on_conflict, returning),
     do: SQL.insert(prefix, table, header, rows, on_conflict, returning)
 
+  @impl true
   def update(prefix, table, fields, filters, returning),
     do: SQL.update(prefix, table, fields, filters, returning)
 
+  @impl true
   def delete(prefix, table, filters, returning),
     do: SQL.delete(prefix, table, filters, returning)
 
   ## Migration
+  @impl true
   def execute_ddl(command), do: MssqlEcto.Migration.execute_ddl(command)
+
+  @impl true
+  def ddl_logs(%Mssqlex.Result{} = result) do
+    %{messages: messages} = result
+
+    for message <- messages do
+      %{message: message, severity: severity} = message
+
+      {ddl_log_level(severity), message, []}
+    end
+  end
+
+  # TODO these are the POSTGRES errors, need to figure out the equivalent for MSSQL
+  defp ddl_log_level("DEBUG"), do: :debug
+  defp ddl_log_level("LOG"), do: :info
+  defp ddl_log_level("INFO"), do: :info
+  defp ddl_log_level("NOTICE"), do: :info
+  defp ddl_log_level("WARNING"), do: :warn
+  defp ddl_log_level("ERROR"), do: :error
+  defp ddl_log_level("FATAL"), do: :error
+  defp ddl_log_level("PANIC"), do: :error
+  defp ddl_log_level(_severity), do: :info
 end
