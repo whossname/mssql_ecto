@@ -4,7 +4,7 @@ ENV DEBIAN_FRONTEND noninteractive
 
 RUN apt-get update
 
-RUN apt-get install -y make
+RUN apt-get install -y make git
 
 # --- Set Locale to en_US.UTF-8 ---
 

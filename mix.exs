@@ -31,7 +31,7 @@ defmodule MssqlEcto.Mixfile do
 
   defp deps do
     [
-      {:mssqlex, path: "../mssqlex"},
+      {:mssqlex, git: "https://github.com/whossname/mssqlex.git", branch: "db_connection_2.0"},
 
       {:ecto_sql, "~> 3.0"},
 
