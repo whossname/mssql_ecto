@@ -232,6 +232,7 @@ defmodule MssqlEcto.Connection do
   end
 
   # TODO these are the POSTGRES errors, need to figure out the equivalent for MSSQL
+  # maybe these? https://docs.microsoft.com/en-us/azure/sql-database/sql-database-develop-error-messages
   defp ddl_log_level("DEBUG"), do: :debug
   defp ddl_log_level("LOG"), do: :info
   defp ddl_log_level("INFO"), do: :info

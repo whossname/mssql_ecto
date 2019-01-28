@@ -39,6 +39,7 @@ Application.put_env(
   username: System.get_env("MSSQL_UID"),
   password: System.get_env("MSSQL_PWD"),
   database: "mssql_ecto_integration_test",
+  migration_lock: "FOR UPDATE",
   pool: Ecto.Adapters.SQL.Sandbox
 )
 
@@ -94,9 +95,14 @@ _ = MssqlEcto.storage_down(config)
 {:ok, _pid} = TestRepo.start_link()
 {:ok, _pid} = PoolRepo.start_link()
 
-Mssqlex.query(TestRepo, "SELECT * from SYSOBJECTS WHERE name='schema_migrations' and xtype='U'", [])
+query = "SELECT DB_NAME() AS [Current Database]"
+Ecto.Adapters.SQL.query!(TestRepo, query)
+|> IO.inspect()
 
-Ecto.Migrator.migrations(TestRepo)
+query = "SELECT * from INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE'"
+Ecto.Adapters.SQL.query!(TestRepo, query)
+|> IO.inspect()
+
 :ok = Ecto.Migrator.up(TestRepo, 0, Ecto.Integration.Migration, log: false)
 Ecto.Adapters.SQL.Sandbox.mode(TestRepo, :manual)
 Process.flag(:trap_exit, true)

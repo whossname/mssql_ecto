@@ -1,7 +1,7 @@
 defmodule MssqlEcto.Mixfile do
   use Mix.Project
 
-  def project do
+  def project() do
     [
       app: :mssql_ecto,
       version: "1.2.0",
@@ -25,11 +25,11 @@ defmodule MssqlEcto.Mixfile do
     ]
   end
 
-  def application do
+  def application() do
     [extra_applications: [:logger]]
   end
 
-  defp deps do
+  defp deps() do
     [
       {:mssqlex, git: "https://github.com/whossname/mssqlex.git", branch: "db_connection_2.0"},
 
@@ -41,7 +41,7 @@ defmodule MssqlEcto.Mixfile do
     ]
   end
 
-  defp package do
+  defp package() do
     [
       name: :mssql_ecto,
       files: ["lib", "mix.exs", "README.md", "LICENSE"],
