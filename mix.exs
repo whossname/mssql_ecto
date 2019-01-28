@@ -6,7 +6,7 @@ defmodule MssqlEcto.Mixfile do
       app: :mssql_ecto,
       version: "1.2.0",
       description: "Ecto Adapter for Microsoft SQL Server. Using Mssqlex.",
-      elixir: "~> 1.6",
+      elixir: "~> 1.8",
       build_embedded: Mix.env() == :prod,
       start_permanent: Mix.env() == :prod,
       deps: deps(),
@@ -31,8 +31,10 @@ defmodule MssqlEcto.Mixfile do
 
   defp deps do
     [
-      {:mssqlex, "~> 1.1.0"},
-      {:ecto, "~> 2.2.0"},
+      {:mssqlex, path: "../mssqlex"},
+
+      {:ecto_sql, "~> 3.0"},
+
       {:ex_doc, "~> 0.15", only: :dev, runtime: false},
       {:excoveralls, "~> 0.6", only: :test},
       {:inch_ex, "~> 0.5", only: :docs}

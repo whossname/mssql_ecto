@@ -39,12 +39,13 @@ Application.put_env(
   username: System.get_env("MSSQL_UID"),
   password: System.get_env("MSSQL_PWD"),
   database: "mssql_ecto_integration_test",
-  pool: Ecto.Adapters.SQL.Sandbox,
-  ownership_pool: pool
+  pool: Ecto.Adapters.SQL.Sandbox
 )
 
 defmodule Ecto.Integration.TestRepo do
-  use Ecto.Integration.Repo, otp_app: :ecto
+  use Ecto.Integration.Repo,
+    otp_app: :ecto,
+    adapter: MssqlEcto
 end
 
 # Pool repo for transaction and lock tests
@@ -54,17 +55,17 @@ Application.put_env(
   :ecto,
   PoolRepo,
   adapter: MssqlEcto,
-  pool: pool,
   username: System.get_env("MSSQL_UID"),
   password: System.get_env("MSSQL_PWD"),
   database: "mssql_ecto_integration_test",
-  pool_size: 10,
   max_restarts: 20,
   max_seconds: 10
 )
 
 defmodule Ecto.Integration.PoolRepo do
-  use Ecto.Integration.Repo, otp_app: :ecto
+  use Ecto.Integration.Repo,
+    otp_app: :ecto,
+    adapter: MssqlEcto
 
   def create_prefix(prefix) do
     "create schema #{prefix}"
@@ -86,12 +87,16 @@ end
 {:ok, _} = MssqlEcto.ensure_all_started(TestRepo, :temporary)
 
 # Load up the repository, start it, and run migrations
-_ = MssqlEcto.storage_down(TestRepo.config())
-:ok = MssqlEcto.storage_up(TestRepo.config())
+config = TestRepo.config()
+_ = MssqlEcto.storage_down(config)
+:ok = MssqlEcto.storage_up(config)
 
 {:ok, _pid} = TestRepo.start_link()
 {:ok, _pid} = PoolRepo.start_link()
 
+Mssqlex.query(TestRepo, "SELECT * from SYSOBJECTS WHERE name='schema_migrations' and xtype='U'", [])
+
+Ecto.Migrator.migrations(TestRepo)
 :ok = Ecto.Migrator.up(TestRepo, 0, Ecto.Integration.Migration, log: false)
 Ecto.Adapters.SQL.Sandbox.mode(TestRepo, :manual)
 Process.flag(:trap_exit, true)

@@ -2,7 +2,9 @@ defmodule MssqlEcto do
   @moduledoc false
   @behaviour Ecto.Adapter.Storage
 
-  use Ecto.Adapters.SQL, :mssqlex
+  use Ecto.Adapters.SQL,
+    driver: :mssqlex,
+    migration_lock: nil
 
   alias MssqlEcto.Migration
   alias MssqlEcto.Storage
@@ -29,7 +31,9 @@ defmodule MssqlEcto do
   def supports_ddl_transaction?, do: Migration.supports_ddl_transaction?()
 
   ## Storage
+  @impl true
   def storage_up(opts), do: Storage.storage_up(opts)
+  @impl true
   def storage_down(opts), do: Storage.storage_down(opts)
 
   ## Structure
