@@ -11,7 +11,6 @@ defmodule MssqlEcto.Migration do
   @spec execute_ddl(command :: Ecto.Adapter.Migration.command) :: String.t | [iodata]
   def execute_ddl({command, %Table{} = table, columns})
       when command in [:create, :create_if_not_exists] do
-    table |> IO.inspect
     query = [
       if_do(
         command == :create_if_not_exists,

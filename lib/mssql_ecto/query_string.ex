@@ -525,8 +525,6 @@ defmodule MssqlEcto.QueryString do
   end
 
   def create_names(sources, pos, limit) when pos < limit do
-    sources |> IO.inspect()
-
     current =
       case elem(sources, pos) do
         {table, schema, prefix} ->
