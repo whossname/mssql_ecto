@@ -97,12 +97,16 @@ _ = MssqlEcto.storage_down(config)
 
 query = "SELECT DB_NAME() AS [Current Database]"
 Ecto.Adapters.SQL.query!(TestRepo, query)
+|> Map.get(:rows)
+|> hd()
+|> hd()
 |> IO.inspect()
 
 query = "SELECT * from INFORMATION_SCHEMA.TABLES WHERE TABLE_TYPE='BASE TABLE'"
 Ecto.Adapters.SQL.query!(TestRepo, query)
+|> Map.get(:columns)
 |> IO.inspect()
 
-:ok = Ecto.Migrator.up(TestRepo, 0, Ecto.Integration.Migration, log: false)
+:ok = Ecto.Migrator.up(TestRepo, 0, MssqlEcto.Migration, log: false)
 Ecto.Adapters.SQL.Sandbox.mode(TestRepo, :manual)
 Process.flag(:trap_exit, true)
