@@ -221,6 +221,8 @@ defmodule MssqlEcto.Connection do
   def execute_ddl(command), do: MssqlEcto.Migration.execute_ddl(command)
 
   @impl true
+
+  def ddl_logs(_), do: []
   def ddl_logs(%Mssqlex.Result{} = result) do
     %{messages: messages} = result
 

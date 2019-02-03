@@ -1,34 +1,17 @@
 defmodule MssqlEcto.Migration do
-  alias Ecto.Migration
-  alias Migration.{Table, Index, Reference, Constraint}
+  alias Ecto.Migration.{Table, Index, Reference, Constraint}
 
   import MssqlEcto.Helpers
 
   @drops [:drop, :drop_if_exists]
 
-  @spec lock_for_migrations(
-          Migration.adapter_meta(),
-          Ecto.Query.t(),
-          options :: Keyword.t(),
-          fun
-        ) ::
-          result
-        when fun: (Ecto.Query.t() -> result), result: var
-  def lock_for_migrations(adapter_meta, arg1, options, fun) do
-    {:error, "not implemented"}
-  end
-
   @doc """
   Receives a DDL command and returns a query that executes it.
   """
-  @spec execute_ddl(
-          Migration.adapter_meta(),
-          Migration.command(),
-          options :: Keyword.t()
-        ) ::
-          {:ok, [{Logger.level(), Logger.message(), Logger.metadata()}]}
-  def execute_ddl(meta, {command, table, sub_command}, options)
+  @spec execute_ddl(command :: Ecto.Adapter.Migration.command) :: String.t | [iodata]
+  def execute_ddl({command, %Table{} = table, columns})
       when command in [:create, :create_if_not_exists] do
+    table |> IO.inspect
     query = [
       if_do(
         command == :create_if_not_exists,
@@ -44,11 +27,10 @@ defmodule MssqlEcto.Migration do
       options_expr(table.options)
     ]
 
-    query |> IO.inspect()
     [query]
   end
 
-  def execute_ddl(meta, command, options) when command in @drops do
+  def execute_ddl({command, %Table{} = table}) when command in @drops do
     [
       [
         if_do(
@@ -164,7 +146,6 @@ defmodule MssqlEcto.Migration do
     do: error!(nil, "MSSQL adapter does not support keyword lists in execute")
 
   @doc false
-  @spec supports_ddl_transaction?() :: boolean()
   def supports_ddl_transaction? do
     false
   end
