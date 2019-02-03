@@ -520,14 +520,16 @@ defmodule MssqlEcto.QueryString do
       | Helpers.intersperse_map(returning, ", ", &Helpers.quote_name/1)
     ]
 
-  def create_names(%{prefix: prefix, sources: sources}) do
-    create_names(prefix, sources, 0, tuple_size(sources)) |> List.to_tuple()
+  def create_names(%{sources: sources}) do
+    create_names(sources, 0, tuple_size(sources)) |> List.to_tuple()
   end
 
-  def create_names(prefix, sources, pos, limit) when pos < limit do
+  def create_names(sources, pos, limit) when pos < limit do
+    sources |> IO.inspect()
+
     current =
       case elem(sources, pos) do
-        {table, schema} ->
+        {table, schema, prefix} ->
           name = [String.first(table) | Integer.to_string(pos)]
           {Helpers.quote_table(prefix, table), name, schema}
 
@@ -538,10 +540,10 @@ defmodule MssqlEcto.QueryString do
           {nil, [?s | Integer.to_string(pos)], nil}
       end
 
-    [current | create_names(prefix, sources, pos + 1, limit)]
+    [current | create_names(sources, pos + 1, limit)]
   end
 
-  def create_names(_prefix, _sources, pos, pos) do
+  def create_names(_sources, pos, pos) do
     []
   end
 end
