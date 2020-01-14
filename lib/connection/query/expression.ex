@@ -208,6 +208,16 @@ defmodule MssqlEcto.Connection.Query.Expression do
     ["0x", Base.encode16(binary, case: :lower)]
   end
 
+  # Re-alias field name so that it is returned by :odbc
+  def expr(
+        %Ecto.Query.Tagged{value: {{:., _, [{:&, _, [idx]}, field]}, _, []} = other, type: type},
+        sources,
+        query
+      )
+      when is_atom(field) do
+    ["CAST(", expr(other, sources, query), " AS ", tagged_to_db(type) | ") AS #{field}"]
+  end
+
   def expr(%Ecto.Query.Tagged{value: other, type: type}, sources, query) do
     ["CAST(", expr(other, sources, query), " AS ", tagged_to_db(type) | ")"]
   end
@@ -258,8 +268,8 @@ defmodule MssqlEcto.Connection.Query.Expression do
 
   defp tagged_to_db({:array, type}), do: [tagged_to_db(type), ?[, ?]]
   # Always use the largest possible type for integers
-  defp tagged_to_db(:id), do: "int"
-  defp tagged_to_db(:integer), do: "int"
+  defp tagged_to_db(:id), do: "bigint"
+  defp tagged_to_db(:integer), do: "bigint"
   defp tagged_to_db(type), do: ecto_to_db(type)
 
   def window_exprs(kw, sources, query) do
