@@ -463,7 +463,7 @@ defmodule MssqlEcto.SelectTest do
       |> select([], type(^1, Custom.Permalink))
       |> parse()
 
-    assert query == ~s{SELECT CAST(? AS int) FROM "schema" AS s0}
+    assert query == ~s{SELECT CAST(? AS bigint) FROM "schema" AS s0}
   end
 
   test "nested expressions" do
@@ -661,8 +661,8 @@ defmodule MssqlEcto.SelectTest do
 
     result =
       "SELECT 'TRUE' FROM \"schema\" AS s0 " <>
-        "WHERE (extract(? from s0.\"start_time\") = CAST(? AS int)) " <>
-        "AND (extract(? from s0.\"start_time\") = CAST(? AS int))"
+        "WHERE (extract(? from s0.\"start_time\") = CAST(? AS bigint)) " <>
+        "AND (extract(? from s0.\"start_time\") = CAST(? AS bigint))"
 
     assert query == String.trim(result)
   end
